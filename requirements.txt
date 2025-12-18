@@ -4,4 +4,3 @@ fpdf==1.7.2
 qrcode==7.4.2
 num2words==0.5.13
 Pillow==10.1.0
-pyinstaller
