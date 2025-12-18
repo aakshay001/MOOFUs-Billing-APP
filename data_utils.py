@@ -1,8 +1,19 @@
+# Add this at the top of data_utils.py after imports
+
+
+
+    
+    # ... rest of the function (column checks, etc.)
+    
+    return customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df
+
+
 # data_utils.py
 import os
 import pandas as pd
 from datetime import date, datetime
 from gdrive_storage import upload_csv_to_drive, download_csv_from_drive
+import streamlit as st
 
 DATA_DIR = "data"
 BILL_DIR = "bills"
@@ -60,8 +71,9 @@ def save_settings(logo_path, upi_id):
     settings = pd.DataFrame([[logo_path, upi_id]], columns=['logo_path', 'upi_id'])
     save_csv_to_drive(settings, 'settings.csv')
 
+@st.cache_data(ttl=60)  # Cache for 60 seconds
 def load_all_data():
-    """Load all data from Google Drive"""
+    """Load all data from Google Drive (cached)"""
     customers = load_csv_from_drive('customers.csv', ['id','name','phone','gstin','address','place','ship_name','ship_address','ship_phone','ship_gstin'])
     products = load_csv_from_drive('products.csv', ['id','name','hsn','price','gst','stock','mfg','exp','free','discount'])
     bills = load_csv_from_drive('bills.csv', ['id','bill_no','fy','customer_id','bill_date','subtotal','cgst','sgst','igst','grand_total','payment_status'])
@@ -110,3 +122,6 @@ def record_stock_movement(stock_movements_df, product_id, batch_no, movement_typ
     ]], columns=['id','product_id','batch_no','movement_type','quantity','date','reference','notes'])
     
     return pd.concat([stock_movements_df, new_movement], ignore_index=True)
+
+
+
