@@ -16,12 +16,10 @@ st.set_page_config(page_title="MOOFU's Billing APP", page_icon= "🌿", layout="
 if not google_drive_login():
     st.info("👈 Please login with Google Drive from the sidebar to continue")
     st.stop()
-
-# Rest of your app code...
-customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df = load_all_data()
-
-# ... rest of existing code ...
-
+    
+# Load data with progress indicator
+with st.spinner("Loading data from Google Drive..."):
+    customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df = load_all_data()
 
 # # app.py
 # import streamlit as st
@@ -141,5 +139,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
 
