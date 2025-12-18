@@ -1,6 +1,24 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+
+# Streamlit
+.streamlit/secrets.toml
+
+# Local data (not needed with Google Drive)
 data/
 bills/
 assets/
-*.pyc
-__pycache__/
-.streamlit/secrets.toml
+
+# Service account key
+*.json
+service-account*.json
+
+# OS
+.DS_Store
+Thumbs.db
