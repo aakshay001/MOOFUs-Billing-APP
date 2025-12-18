@@ -2,7 +2,10 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-from data_utils import save_csv, PRODUCTS_FILE, BATCHES_FILE, STOCK_MOVEMENTS_FILE, record_stock_movement
+# from data_utils import save_csv, PRODUCTS_FILE, BATCHES_FILE, STOCK_MOVEMENTS_FILE, record_stock_movement
+# NEW - USE THIS
+from data_utils import record_stock_movement
+
 
 def stock_management_tab(products, batches_df, stock_movements_df):
     st.header("📦 Stock & Batch Management")
@@ -229,3 +232,4 @@ def stock_management_tab(products, batches_df, stock_movements_df):
             )
     
     return products, batches_df, stock_movements_df
+
