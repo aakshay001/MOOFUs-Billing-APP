@@ -1,6 +1,7 @@
 # app.py
 import streamlit as st
 import os
+from gdrive_storage import google_drive_login
 from data_utils import load_all_data, save_all_data, load_settings, save_settings
 from ui_company import company_tab
 from ui_customers import customers_tab
@@ -9,16 +10,40 @@ from ui_stock import stock_management_tab
 from ui_billing import create_bill_tab, view_bill_tab, edit_bill_tab
 from ui_reports import reports_tab
 
-
-# Create directories if they don't exist (cloud compatible)
-for folder in ['data', 'bills', 'assets']:
-    os.makedirs(folder, exist_ok=True)
-
-
 st.set_page_config(page_title="MOOFU's Billing APP", page_icon= "🌿", layout="wide")
 
-# Load data including batches and stock movements
+# Google Drive authentication - REQUIRED
+if not google_drive_login():
+    st.info("👈 Please login with Google Drive from the sidebar to continue")
+    st.stop()
+
+# Rest of your app code...
 customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df = load_all_data()
+
+# ... rest of existing code ...
+
+
+# # app.py
+# import streamlit as st
+# import os
+# from data_utils import load_all_data, save_all_data, load_settings, save_settings
+# from ui_company import company_tab
+# from ui_customers import customers_tab
+# from ui_products import products_tab
+# from ui_stock import stock_management_tab
+# from ui_billing import create_bill_tab, view_bill_tab, edit_bill_tab
+# from ui_reports import reports_tab
+
+
+# # Create directories if they don't exist (cloud compatible)
+# for folder in ['data', 'bills', 'assets']:
+#     os.makedirs(folder, exist_ok=True)
+
+
+# st.set_page_config(page_title="MOOFU's Billing APP", page_icon= "🌿", layout="wide")
+
+# # Load data including batches and stock movements
+# customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df = load_all_data()
 
 # Load saved logo and UPI
 saved_logo_path = settings_df.loc[0, 'logo_path'] if not settings_df.empty else ''
@@ -116,4 +141,5 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
 
