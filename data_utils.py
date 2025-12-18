@@ -1,4 +1,4 @@
-# data_utils.py - Google Drive version
+# data_utils.py
 import os
 import pandas as pd
 from datetime import date, datetime
@@ -71,11 +71,9 @@ def load_all_data():
     batches_df = load_csv_from_drive('batches.csv', ['id','product_id','batch_no','mfg_date','exp_date','quantity','price'])
     stock_movements_df = load_csv_from_drive('stock_movements.csv', ['id','product_id','batch_no','movement_type','quantity','date','reference','notes'])
     
-    # Initialize company if empty
     if company_df.empty:
         company_df.loc[0] = ['', '', '', '', '', '']
     
-    # Ensure required columns exist
     for col in ['mfg','exp','free','discount','hsn']:
         if col not in products.columns:
             products[col] = '' if col in ['mfg','exp','hsn'] else 0
