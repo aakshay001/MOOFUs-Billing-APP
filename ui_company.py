@@ -1,7 +1,7 @@
 # ui_company.py
 import streamlit as st
 import pandas as pd
-from data_utils import save_all_data, safe_str
+from data_utils import safe_str
 
 def company_tab(company_df):
     st.header("🏢 Company Details")
