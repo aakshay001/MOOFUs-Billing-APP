@@ -1,27 +1,33 @@
 # ui_company.py
 import streamlit as st
 import pandas as pd
-from data_utils import save_csv, COMPANY_FILE, safe_str
+from data_utils import save_all_data, safe_str
 
 def company_tab(company_df):
     st.header("🏢 Company Details")
-    c = company_df.loc[0]
     
-    col1, col2 = st.columns(2)
-    with col1:
-        name = st.text_input("Company Name", safe_str(c['name']), key="company_name")
-        gstin = st.text_input("GSTIN", safe_str(c['gstin']), key="company_gstin")
-        phone = st.text_input("Phone Number", safe_str(c.get('phone', '')), key="company_phone")
-    
-    with col2:
-        msme = st.text_input("MSME Number (Optional)", safe_str(c.get('msme', '')), key="company_msme")
-        fssai = st.text_input("FSSAI Lic No. (Optional)", safe_str(c.get('fssai', '')), key="company_fssai")
-        address = st.text_area("Address", safe_str(c['address']), key="company_address")
-    
-    if st.button("💾 Save Company Details", key="save_company"):
-        company_df.loc[0] = [name, gstin, msme, fssai, phone, address]
-        save_csv(company_df, COMPANY_FILE)
-        st.success("✅ Company details saved successfully!")
-        st.rerun()
+    with st.form("company_form"):
+        name = st.text_input("Company Name", value=safe_str(company_df.loc[0, 'name']))
+        gstin = st.text_input("GSTIN", value=safe_str(company_df.loc[0, 'gstin']))
+        
+        col1, col2 = st.columns(2)
+        with col1:
+            msme = st.text_input("MSME Registration", value=safe_str(company_df.loc[0, 'msme']))
+        with col2:
+            fssai = st.text_input("FSSAI License", value=safe_str(company_df.loc[0, 'fssai']))
+        
+        phone = st.text_input("Phone Number", value=safe_str(company_df.loc[0, 'phone']))
+        address = st.text_area("Address", value=safe_str(company_df.loc[0, 'address']))
+        
+        if st.form_submit_button("💾 Save Company Details", type="primary"):
+            company_df.loc[0, 'name'] = name
+            company_df.loc[0, 'gstin'] = gstin
+            company_df.loc[0, 'msme'] = msme
+            company_df.loc[0, 'fssai'] = fssai
+            company_df.loc[0, 'phone'] = phone
+            company_df.loc[0, 'address'] = address
+            
+            st.success("✅ Company details saved!")
+            st.rerun()
     
     return company_df
