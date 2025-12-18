@@ -16,15 +16,29 @@ BILLS_FILE = f"{DATA_DIR}/bills.csv"
 ITEMS_FILE = f"{DATA_DIR}/bill_items.csv"
 COMPANY_FILE = f"{DATA_DIR}/company.csv"
 SETTINGS_FILE = f"{DATA_DIR}/settings.csv"
-BATCHES_FILE = f"{DATA_DIR}/batches.csv"  # NEW: Batch tracking
-STOCK_MOVEMENTS_FILE = f"{DATA_DIR}/stock_movements.csv"  # NEW: Stock history
+BATCHES_FILE = f"{DATA_DIR}/batches.csv"
+STOCK_MOVEMENTS_FILE = f"{DATA_DIR}/stock_movements.csv"
 
 def load_csv(path, cols):
+    """Load CSV file, handle empty files gracefully"""
     if os.path.exists(path):
-        return pd.read_csv(path)
+        try:
+            # Check if file is empty
+            if os.path.getsize(path) == 0:
+                return pd.DataFrame(columns=cols)
+            return pd.read_csv(path)
+        except pd.errors.EmptyDataError:
+            # File exists but is empty or corrupted
+            return pd.DataFrame(columns=cols)
+        except Exception as e:
+            # Any other error, return empty DataFrame
+            print(f"Warning: Could not load {path}: {e}")
+            return pd.DataFrame(columns=cols)
     return pd.DataFrame(columns=cols)
 
 def save_csv(df, path):
+    """Save CSV file, create directory if needed"""
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     df.to_csv(path, index=False)
 
 def financial_year():
