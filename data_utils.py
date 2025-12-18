@@ -1,12 +1,3 @@
-# Add this at the top of data_utils.py after imports
-
-
-
-    
-    # ... rest of the function (column checks, etc.)
-    
-    return customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df
-
 
 # data_utils.py
 import os
@@ -122,6 +113,7 @@ def record_stock_movement(stock_movements_df, product_id, batch_no, movement_typ
     ]], columns=['id','product_id','batch_no','movement_type','quantity','date','reference','notes'])
     
     return pd.concat([stock_movements_df, new_movement], ignore_index=True)
+
 
 
 
