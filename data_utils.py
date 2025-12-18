@@ -1,7 +1,8 @@
-# data_utils.py
+# data_utils.py - Google Drive version
 import os
 import pandas as pd
 from datetime import date, datetime
+from gdrive_storage import upload_csv_to_drive, download_csv_from_drive
 
 DATA_DIR = "data"
 BILL_DIR = "bills"
@@ -9,37 +10,6 @@ BILL_DIR = "bills"
 os.makedirs(DATA_DIR, exist_ok=True)
 os.makedirs(BILL_DIR, exist_ok=True)
 os.makedirs("assets", exist_ok=True)
-
-CUSTOMERS_FILE = f"{DATA_DIR}/customers.csv"
-PRODUCTS_FILE = f"{DATA_DIR}/products.csv"
-BILLS_FILE = f"{DATA_DIR}/bills.csv"
-ITEMS_FILE = f"{DATA_DIR}/bill_items.csv"
-COMPANY_FILE = f"{DATA_DIR}/company.csv"
-SETTINGS_FILE = f"{DATA_DIR}/settings.csv"
-BATCHES_FILE = f"{DATA_DIR}/batches.csv"
-STOCK_MOVEMENTS_FILE = f"{DATA_DIR}/stock_movements.csv"
-
-def load_csv(path, cols):
-    """Load CSV file, handle empty files gracefully"""
-    if os.path.exists(path):
-        try:
-            # Check if file is empty
-            if os.path.getsize(path) == 0:
-                return pd.DataFrame(columns=cols)
-            return pd.read_csv(path)
-        except pd.errors.EmptyDataError:
-            # File exists but is empty or corrupted
-            return pd.DataFrame(columns=cols)
-        except Exception as e:
-            # Any other error, return empty DataFrame
-            print(f"Warning: Could not load {path}: {e}")
-            return pd.DataFrame(columns=cols)
-    return pd.DataFrame(columns=cols)
-
-def save_csv(df, path):
-    """Save CSV file, create directory if needed"""
-    os.makedirs(os.path.dirname(path), exist_ok=True)
-    df.to_csv(path, index=False)
 
 def financial_year():
     y = date.today().year
@@ -67,9 +37,20 @@ def safe_str(val, default=''):
         return default
     return str(val)
 
+def load_csv_from_drive(filename, default_cols):
+    """Load CSV from Google Drive"""
+    df = download_csv_from_drive(filename)
+    if df.empty:
+        df = pd.DataFrame(columns=default_cols)
+    return df
+
+def save_csv_to_drive(df, filename):
+    """Save DataFrame to Google Drive"""
+    upload_csv_to_drive(df, filename)
+
 def load_settings():
-    """Load persistent settings (logo, UPI)"""
-    settings = load_csv(SETTINGS_FILE, ['logo_path', 'upi_id'])
+    """Load persistent settings"""
+    settings = load_csv_from_drive('settings.csv', ['logo_path', 'upi_id'])
     if settings.empty:
         settings.loc[0] = ['', '']
     return settings
@@ -77,18 +58,18 @@ def load_settings():
 def save_settings(logo_path, upi_id):
     """Save persistent settings"""
     settings = pd.DataFrame([[logo_path, upi_id]], columns=['logo_path', 'upi_id'])
-    save_csv(settings, SETTINGS_FILE)
+    save_csv_to_drive(settings, 'settings.csv')
 
 def load_all_data():
-    """Load all CSV files"""
-    customers = load_csv(CUSTOMERS_FILE, ['id','name','phone','gstin','address','place','ship_name','ship_address','ship_phone','ship_gstin'])
-    products = load_csv(PRODUCTS_FILE, ['id','name','hsn','price','gst','stock','mfg','exp','free','discount'])
-    bills = load_csv(BILLS_FILE, ['id','bill_no','fy','customer_id','bill_date','subtotal','cgst','sgst','igst','grand_total','payment_status'])
-    items_df = load_csv(ITEMS_FILE, ['bill_no','product','qty','price','gst','mfg','exp','free','discount','batch_no'])
-    company_df = load_csv(COMPANY_FILE, ['name','gstin','msme','fssai','phone','address'])
+    """Load all data from Google Drive"""
+    customers = load_csv_from_drive('customers.csv', ['id','name','phone','gstin','address','place','ship_name','ship_address','ship_phone','ship_gstin'])
+    products = load_csv_from_drive('products.csv', ['id','name','hsn','price','gst','stock','mfg','exp','free','discount'])
+    bills = load_csv_from_drive('bills.csv', ['id','bill_no','fy','customer_id','bill_date','subtotal','cgst','sgst','igst','grand_total','payment_status'])
+    items_df = load_csv_from_drive('bill_items.csv', ['bill_no','product','qty','price','gst','mfg','exp','free','discount','batch_no'])
+    company_df = load_csv_from_drive('company.csv', ['name','gstin','msme','fssai','phone','address'])
     settings_df = load_settings()
-    batches_df = load_csv(BATCHES_FILE, ['id','product_id','batch_no','mfg_date','exp_date','quantity','price'])
-    stock_movements_df = load_csv(STOCK_MOVEMENTS_FILE, ['id','product_id','batch_no','movement_type','quantity','date','reference','notes'])
+    batches_df = load_csv_from_drive('batches.csv', ['id','product_id','batch_no','mfg_date','exp_date','quantity','price'])
+    stock_movements_df = load_csv_from_drive('stock_movements.csv', ['id','product_id','batch_no','movement_type','quantity','date','reference','notes'])
     
     # Initialize company if empty
     if company_df.empty:
@@ -107,24 +88,23 @@ def load_all_data():
         if col not in company_df.columns:
             company_df[col] = ''
     
-    # Add batch_no to items if missing
     if 'batch_no' not in items_df.columns:
         items_df['batch_no'] = ''
     
     return customers, products, bills, items_df, company_df, settings_df, batches_df, stock_movements_df
 
 def save_all_data(customers, products, bills, items_df, company_df, batches_df, stock_movements_df):
-    """Save all dataframes"""
-    save_csv(company_df, COMPANY_FILE)
-    save_csv(customers, CUSTOMERS_FILE)
-    save_csv(products, PRODUCTS_FILE)
-    save_csv(bills, BILLS_FILE)
-    save_csv(items_df, ITEMS_FILE)
-    save_csv(batches_df, BATCHES_FILE)
-    save_csv(stock_movements_df, STOCK_MOVEMENTS_FILE)
+    """Save all dataframes to Google Drive"""
+    save_csv_to_drive(company_df, 'company.csv')
+    save_csv_to_drive(customers, 'customers.csv')
+    save_csv_to_drive(products, 'products.csv')
+    save_csv_to_drive(bills, 'bills.csv')
+    save_csv_to_drive(items_df, 'bill_items.csv')
+    save_csv_to_drive(batches_df, 'batches.csv')
+    save_csv_to_drive(stock_movements_df, 'stock_movements.csv')
 
 def record_stock_movement(stock_movements_df, product_id, batch_no, movement_type, quantity, reference, notes=""):
-    """Record stock movement (IN/OUT/ADJUST)"""
+    """Record stock movement"""
     new_id = 1 if stock_movements_df.empty else int(stock_movements_df['id'].max()) + 1
     new_movement = pd.DataFrame([[
         new_id, product_id, batch_no, movement_type, quantity, 
