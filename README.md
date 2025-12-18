@@ -19,8 +19,10 @@
 - Click "Save Settings"
 
 ## Support:
-For issues, contact: your-email@example.com
+For issues, contact: moofufoods@gmail.com
+
 GST-BillBook/
+
 ├── app.py
 ├── data_utils.py
 ├── pdf_generator.py
@@ -36,3 +38,4 @@ GST-BillBook/
 ├── data/           (empty folder)
 ├── bills/          (empty folder)
 └── assets/         (empty folder)
+
