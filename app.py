@@ -110,9 +110,10 @@ st.divider()
 st.markdown(
     """
     <div style='text-align: center; color: gray; padding: 20px;'>
-        <p>GST BillBook - Complete Inventory & Invoice Management</p>
+        <p>🌿 MOOFU's Billbook - Complete Inventory & GST Invoice Management</p>
         <p style='font-size: 12px;'>Made with ❤️ using Streamlit</p>
     </div>
     """,
     unsafe_allow_html=True
 )
+
