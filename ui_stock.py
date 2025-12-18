@@ -2,10 +2,7 @@
 import streamlit as st
 import pandas as pd
 from datetime import date
-# from data_utils import save_csv, PRODUCTS_FILE, BATCHES_FILE, STOCK_MOVEMENTS_FILE, record_stock_movement
-# NEW - USE THIS
 from data_utils import record_stock_movement
-
 
 def stock_management_tab(products, batches_df, stock_movements_df):
     st.header("📦 Stock & Batch Management")
@@ -19,7 +16,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
         if products.empty:
             st.info("No products available.")
         else:
-            # Calculate total stock per product from batches
             if not batches_df.empty:
                 batch_stock = batches_df.groupby('product_id')['quantity'].sum().reset_index()
                 products_display = products.merge(batch_stock, left_on='id', right_on='product_id', how='left', suffixes=('', '_batch'))
@@ -27,7 +23,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
             else:
                 products_display = products.copy()
             
-            # Add low stock indicator
             products_display['status'] = products_display['stock'].apply(
                 lambda x: '🔴 Low' if x < 10 else '🟡 Medium' if x < 50 else '🟢 Good'
             )
@@ -35,7 +30,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
             display_cols = ['name', 'hsn', 'stock', 'price', 'status']
             st.dataframe(products_display[display_cols], width='stretch')
             
-            # Alerts
             low_stock = products_display[products_display['stock'] < 10]
             if not low_stock.empty:
                 st.warning(f"⚠️ {len(low_stock)} products are low in stock!")
@@ -71,35 +65,34 @@ def stock_management_tab(products, batches_df, stock_movements_df):
                     if batch_no and quantity > 0:
                         new_batch_id = 1 if batches_df.empty else int(batches_df['id'].max()) + 1
                         
-                        new_batch = pd.DataFrame([[
-                            new_batch_id, product_id, batch_no, str(mfg_date), str(exp_date), quantity, price
-                        ]], columns=['id','product_id','batch_no','mfg_date','exp_date','quantity','price'])
+                        new_batch = {
+                            'id': new_batch_id,
+                            'product_id': product_id,
+                            'batch_no': batch_no,
+                            'mfg_date': str(mfg_date),
+                            'exp_date': str(exp_date),
+                            'quantity': quantity,
+                            'price': price
+                        }
                         
-                        batches_df = pd.concat([batches_df, new_batch], ignore_index=True)
-                        save_csv(batches_df, BATCHES_FILE)
+                        batches_df = pd.concat([batches_df, pd.DataFrame([new_batch])], ignore_index=True)
                         
-                        # Update product total stock
                         products.loc[products.id == product_id, 'stock'] = products.loc[products.id == product_id, 'stock'] + quantity
-                        save_csv(products, PRODUCTS_FILE)
                         
-                        # Record stock movement
                         stock_movements_df = record_stock_movement(
                             stock_movements_df, product_id, batch_no, "IN", quantity, 
                             f"Batch {batch_no}", "New batch added"
                         )
-                        save_csv(stock_movements_df, STOCK_MOVEMENTS_FILE)
                         
                         st.success(f"✅ Batch {batch_no} added successfully!")
                         st.rerun()
                     else:
                         st.error("Please enter batch number and quantity.")
         
-        # Display batches
         st.subheader("All Batches")
         if batches_df.empty:
             st.info("No batches available.")
         else:
-            # Merge with product names
             batches_display = batches_df.merge(
                 products[['id', 'name']], 
                 left_on='product_id', 
@@ -156,19 +149,15 @@ def stock_management_tab(products, batches_df, stock_movements_df):
                     products.loc[products.id == adjust_product_id, 'stock'] = max(0, current_stock - adjustment_qty)
                     movement_type = "ADJUST_OUT"
                     qty_change = -adjustment_qty
-                else:  # Set Stock
+                else:
                     products.loc[products.id == adjust_product_id, 'stock'] = new_stock
                     movement_type = "ADJUST_SET"
                     qty_change = new_stock - current_stock
                 
-                save_csv(products, PRODUCTS_FILE)
-                
-                # Record movement
                 stock_movements_df = record_stock_movement(
                     stock_movements_df, adjust_product_id, "MANUAL", movement_type, 
                     qty_change, "Manual Adjustment", adjustment_reason
                 )
-                save_csv(stock_movements_df, STOCK_MOVEMENTS_FILE)
                 
                 st.success("✅ Stock adjusted successfully!")
                 st.rerun()
@@ -180,7 +169,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
         if stock_movements_df.empty:
             st.info("No stock movements recorded yet.")
         else:
-            # Merge with product names
             movements_display = stock_movements_df.merge(
                 products[['id', 'name']], 
                 left_on='product_id', 
@@ -188,10 +176,8 @@ def stock_management_tab(products, batches_df, stock_movements_df):
                 how='left'
             )
             
-            # Sort by date descending
             movements_display = movements_display.sort_values('date', ascending=False)
             
-            # Filter options
             col1, col2 = st.columns(2)
             
             with col1:
@@ -208,7 +194,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
                     key="movement_filter_product"
                 )
             
-            # Apply filters
             filtered_movements = movements_display.copy()
             
             if filter_type != "All":
@@ -221,7 +206,6 @@ def stock_management_tab(products, batches_df, stock_movements_df):
             display_cols = ['date', 'name', 'batch_no', 'movement_type', 'quantity', 'reference', 'notes']
             st.dataframe(filtered_movements[display_cols], width='stretch')
             
-            # Export
             csv = filtered_movements.to_csv(index=False)
             st.download_button(
                 label="📥 Export Movement History",
@@ -232,4 +216,3 @@ def stock_management_tab(products, batches_df, stock_movements_df):
             )
     
     return products, batches_df, stock_movements_df
-
